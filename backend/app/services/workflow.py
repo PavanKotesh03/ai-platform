@@ -8,13 +8,6 @@ class WorkflowService:
         logger.info("Fetching workflow list")
         return workflow_registry.list_workflows()
 
-    def get_workflow(self, id: str):
-        logger.info(f"Fetching workflow: {id}")
-        workflow = workflow_registry.get(id)
-        if not workflow:
-            logger.error(f"Workflow not found: {id}")
-            raise ValueError(f"Workflow '{id}' not found")
-        return workflow
 
     async def execute_workflow(self, workflow_id: str, input_data: dict) -> dict:
         logger.info(f"Executing workflow: {workflow_id}")

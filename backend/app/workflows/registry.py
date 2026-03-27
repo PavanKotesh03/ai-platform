@@ -4,14 +4,16 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+
 class WorkflowRegistry:
     def __init__(self):
-        self._workflows: dict[str, BaseWorkflow] = {} 
+        self._workflows: dict[str, BaseWorkflow] = {}  
         self._register_all()
 
     def _register_all(self):
         workflows = [
             EchoAgent(),
+            # Add new agents here
         ]
         for workflow in workflows:
             self._workflows[workflow.id] = workflow  # stored by UUID
@@ -21,6 +23,6 @@ class WorkflowRegistry:
         return self._workflows.get(id)
 
     def list_workflows(self) -> list[BaseWorkflow]:
-        return list(self._workflows.values())  # return objects, not just keys
+        return list(self._workflows.values()) 
 
 workflow_registry = WorkflowRegistry()
