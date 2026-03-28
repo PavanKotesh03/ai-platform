@@ -17,9 +17,7 @@ async def get_status():
             "workflow_registry": {
                 "status": "ok",
                 "registered_workflows": len(workflows),
-                "workflows": [
-                    {"id": w.id, "name": w.name} for w in workflows
-                ]
+                "workflows": [{"id": w.id, "name": w.name} for w in workflows]
             }
         }
     }

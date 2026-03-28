@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any
-import uuid
+from typing import Any, Optional
+
 
 class BaseWorkflow(ABC):
-    description: str = ""
-
-    def __init__(self):
-        self.id: str = str(uuid.uuid4())  
-        self.name: str = self.__class__.name  
+    name: str = ""           # stable identifier — defined in code
+    description: str = ""    # defined in code
+    id: Optional[str] = None # assigned FROM DB at startup — not hardcoded
 
     @abstractmethod
     async def run(self, input_data: dict[str, Any]) -> dict[str, Any]: ...

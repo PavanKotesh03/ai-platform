@@ -1,28 +1,34 @@
 from app.workflows.base_workflow import BaseWorkflow
 from app.workflows.agents.echo_agent import EchoAgent
 from app.core.logging import get_logger
-logger = get_logger(__name__)
+from typing import Optional
 
+logger = get_logger(__name__)
 
 
 class WorkflowRegistry:
     def __init__(self):
-        self._workflows: dict[str, BaseWorkflow] = {}  
-        self._register_all()
+        self._definitions: list[BaseWorkflow] = [EchoAgent()]
+        self._workflows: dict[str, BaseWorkflow] = {} 
 
-    def _register_all(self):
-        workflows = [
-            EchoAgent(),
-            # Add new agents here
-        ]
-        for workflow in workflows:
-            self._workflows[workflow.id] = workflow  # stored by UUID
-            logger.info(f"Workflow registered: name={workflow.name} id={workflow.id}")
+    def assign_id(self, name: str, workflow_id: str) -> None:
+        """Called during startup — assigns DB UUID to workflow object."""
+        for workflow in self._definitions:
+            if workflow.name == name:
+                workflow.id = workflow_id
+                self._workflows[workflow_id] = workflow
+                logger.info(f"Workflow ready: {name} ({workflow_id})")
+                return
 
-    def get(self, id: str) -> BaseWorkflow | None:
+    def get_definitions(self) -> list[BaseWorkflow]:
+        """Used by startup to know which workflows need DB entries."""
+        return self._definitions
+
+    def get(self, id: str) -> Optional[BaseWorkflow]:
         return self._workflows.get(id)
 
     def list_workflows(self) -> list[BaseWorkflow]:
-        return list(self._workflows.values()) 
+        return list(self._workflows.values())
+
 
 workflow_registry = WorkflowRegistry()
