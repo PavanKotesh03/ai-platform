@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Generic, TypeVar, Type, Optional
+from sqlalchemy.exc import SQLAlchemyError
+from typing import Generic, TypeVar, Type
 from app.db.models import Base
+from app.core.exceptions import DatabaseException
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -11,7 +13,11 @@ class BaseRepository(Generic[ModelType]):
         self.session = session
 
     async def create(self, obj: ModelType) -> ModelType:
-        self.session.add(obj)
-        await self.session.commit()
-        await self.session.refresh(obj)
-        return obj
+        try:
+            self.session.add(obj)
+            await self.session.flush()
+            await self.session.refresh(obj)
+            return obj
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise DatabaseException() from e

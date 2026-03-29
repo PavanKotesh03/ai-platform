@@ -1,9 +1,10 @@
+import uuid
 from fastapi import HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.user import UserRepository
 from app.core.security import (
     hash_password, verify_password,
-    create_access_token, create_refresh_token, decode_token
+    create_access_token, create_refresh_token, decode_token,
 )
 from app.core.config import settings
 from app.db.models import User
@@ -29,13 +30,13 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
-        path="/api/v1/auth/refresh",
+        path=settings.REFRESH_COOKIE_PATH,
     )
 
 
 def _clear_auth_cookies(response: Response) -> None:
     response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/api/v1/auth/refresh")
+    response.delete_cookie("refresh_token", path=settings.REFRESH_COOKIE_PATH)
 
 
 class AuthService:
@@ -52,17 +53,18 @@ class AuthService:
             hashed_password=hash_password(password),
         )
         await repo.create(user)
-        logger.info(f"User registered: {email}")
+        await db.commit()
+        logger.info("User registered", user_id=str(user.user_id))
 
     async def login(self, email: str, password: str, response: Response, db: AsyncSession) -> dict:
         user = await UserRepository(db).get_by_email(email)
-        if not user or not verify_password(password, user.hashed_password):
+        if not user or not user.hashed_password or not verify_password(password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials"
+                detail="Invalid credentials",
             )
         _set_auth_cookies(response, create_access_token(user.email), create_refresh_token(user.email))
-        logger.info(f"User logged in: {email}")
+        logger.info("User logged in", user_id=str(user.user_id))
         return {"message": "Login successful"}
 
     async def refresh(self, request: Request, response: Response, db: AsyncSession) -> dict:
@@ -70,35 +72,37 @@ class AuthService:
         if not refresh_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token cookie missing"
+                detail="Refresh token cookie missing",
             )
+
         try:
             payload = decode_token(refresh_token)
-            if payload.get("type") != "refresh":
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token type"
-                )
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token is invalid or expired"
+                detail="Refresh token is invalid or expired",
+            )
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
             )
 
         user = await UserRepository(db).get_by_email(payload["sub"])
-        if not userve:
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or deactivated"
+                detail="User not found or deactivated",
             )
 
         _set_auth_cookies(response, create_access_token(user.email), create_refresh_token(user.email))
-        logger.info(f"Tokens rotated for: {user.email}")
+        logger.info("Tokens rotated", user_id=str(user.user_id))
         return {"message": "Token refreshed"}
 
-    async def logout(self, response: Response) -> dict:
+    async def logout(self, response: Response, user_id: uuid.UUID) -> dict:
         _clear_auth_cookies(response)
-        logger.info("User logged out")
+        logger.info("User logged out", user_id=str(user_id))
         return {"message": "Logged out successfully"}
 
 

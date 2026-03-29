@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.workflow import workflow_service
 from app.schemas.workflow import WorkflowListResponse, WorkflowResponse, ExecutionRequest, ExecutionResponse
 from app.core.dependencies import get_current_user, get_db
+from app.core.exceptions import AppException
 from app.db.models import User
 from app.core.logging import get_logger
 
@@ -10,29 +11,28 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
-@router.get("/", response_model=WorkflowListResponse)
-async def list_workflows(current_user_token: tuple = Depends(get_current_user)):
-    try:
-        workflows = workflow_service.list_workflows()
-        return WorkflowListResponse(
-            workflows=[WorkflowResponse(id=w.id, name=w.name, description=w.description) for w in workflows]
-        )
-    except Exception as e:
-        logger.error(f"Workflow listing failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+@router.get("", response_model=WorkflowListResponse)
+async def list_workflows(current_user_token: tuple[User, str] = Depends(get_current_user)):
+    workflows = workflow_service.list_workflows()
+    return WorkflowListResponse(
+        workflows=[WorkflowResponse(id=w.id, name=w.name, description=w.description) for w in workflows]
+    )
 
 
-@router.post("/{id}/execute", response_model=ExecutionResponse)
+@router.post("/{workflow_id}/execute", response_model=ExecutionResponse)
 async def execute_workflow(
-    id: str,
+    workflow_id: str,
     request: ExecutionRequest,
-    current_user_token: tuple = Depends(get_current_user),
+    current_user_token: tuple[User, str] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = current_user_token
     try:
-        return await workflow_service.execute_workflow(id, request.input, user.user_id, db)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return await workflow_service.execute_workflow(workflow_id, request.input, user.user_id, db)
+    except AppException:
+        raise
+    except RuntimeError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Workflow execution failed",
+        )
