@@ -1,0 +1,66 @@
+[
+    {
+        "sent_at": "2026-03-20 13:42:07",
+        "to_candidate": "john.smith@email.com",
+        "to_interviewer": "sarabjeet.singh@backend.flipkart.com",
+        "subject": "Interview Scheduled - Python Backend Developer",
+        "body": "Dear John Smith,\n\nYour interview for 'Python Backend Developer' has been scheduled on 2025-06-10 at 10:00 AM with Sarabjeet Singh.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-20 14:37:29",
+        "to_candidate": "gayathrikomma309@gmail.com",
+        "to_interviewer": "sarabjeet.singh@backend.flipkart.com",
+        "subject": "Interview Scheduled - Python Backend Developer",
+        "body": "Dear Komma Gayathri,\n\nYour interview for 'Python Backend Developer' has been scheduled on 2025-06-10 at 10:00 AM with Sarabjeet Singh.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-20 14:50:49",
+        "to_candidate": "gayathrikomma309@gmail.com",
+        "to_interviewer": "sarabjeet.singh@backend.flipkart.com",
+        "subject": "Interview Scheduled - Python Backend Developer",
+        "body": "Dear Komma Gayathri,\n\nYour interview for 'Python Backend Developer' has been scheduled on 2025-06-10 at 10:00 AM with Sarabjeet Singh.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-20 15:50:39",
+        "to_candidate": "gayathrikomma309@gmail.com",
+        "to_interviewer": "sarabjeet.singh@backend.flipkart.com",
+        "subject": "Interview Scheduled - Python Backend Developer",
+        "body": "Dear Komma Gayathri,\n\nYour interview for 'Python Backend Developer' has been scheduled on 2025-06-10 at 10:00 AM with Sarabjeet Singh.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-20 16:10:38",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\n\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-25 12:15:41",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-25 13:54:07",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-03-25 14:25:33",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    }
+]
