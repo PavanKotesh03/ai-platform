@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = True
     COOKIE_SAMESITE: str = "lax"
     REFRESH_COOKIE_PATH: str = "/api/v1/auth/refresh"
+    GROQ_API_KEY: str
+    GEMINI_API_KEY: str
 
     class Config:
         env_file = ".env"

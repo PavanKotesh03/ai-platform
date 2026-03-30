@@ -3,14 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.workflows.registry import workflow_registry
 from app.repositories.session import SessionRepository
 from app.db.models import WorkflowSession, SessionStatus
-from app.core.exceptions import WorkflowNotFoundException
+from app.core.exceptions import WorkflowNotFoundException, AppException
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class WorkflowService:
-
     def list_workflows(self):
         return workflow_registry.list_workflows()
 
@@ -25,6 +24,9 @@ class WorkflowService:
         if not workflow:
             raise WorkflowNotFoundException(workflow_id)
 
+        # Validate before creating a DB session — bad input never touches the DB
+        workflow.validate_input(input_data)
+
         session = WorkflowSession(
             user_id=user_id,
             workflow_id=uuid.UUID(workflow_id),
@@ -38,6 +40,9 @@ class WorkflowService:
             session.status = SessionStatus.SUCCESS
             await db.commit()
             logger.info("Workflow execution successful", workflow_id=workflow_id)
+        except AppException:
+            # AppException raised inside run() — propagate directly, no DB session update needed
+            raise
         except Exception as e:
             session.status = SessionStatus.FAILED
             session.error_message = str(e)

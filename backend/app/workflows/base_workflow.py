@@ -1,11 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
 
 
 class BaseWorkflow(ABC):
-    name: str = ""           # stable identifier — defined in code
-    description: str = ""    # defined in code
-    id: Optional[str] = None # assigned FROM DB at startup — not hardcoded
+    id: str = ""
+    name: str
+    description: str
+
+    def validate_input(self, input_data: dict) -> None:
+        """Override in subclasses to validate workflow-specific inputs.
+        Raise WorkflowInputException if validation fails.
+        Called before the session is created, so no DB record is written on bad input.
+        """
+        pass
 
     @abstractmethod
-    async def run(self, input_data: dict[str, Any]) -> dict[str, Any]: ...
+    async def run(self, input_data: dict) -> dict:
+        pass
