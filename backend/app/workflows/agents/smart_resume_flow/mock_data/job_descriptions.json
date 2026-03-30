@@ -1,0 +1,90 @@
+[
+    {
+        "id": "JD001",
+        "title": "Python Backend Developer",
+        "domain": "Python",
+        "required_skills": ["Python", "FastAPI", "REST API", "SQL", "Django"],
+        "experience_years": 3,
+        "description": "We are looking for a Python Backend Developer with experience in FastAPI and Django."
+    },
+    {
+        "id": "JD016",
+        "title": "Backend Engineer - Payments (Java, Kafka, High Throughput Systems)",
+        "domain": "Backend/FinTech",
+        "required_skills": ["Java", "Spring Boot", "Kafka", "Distributed Systems", "MySQL", "Idempotency", "API Security"],
+        "experience_years": 5,
+        "description": "Building high-throughput payment systems with strong consistency, idempotency handling, and event-driven architecture using Kafka."
+    },
+    {
+        "id": "JD017",
+        "title": "Frontend Engineer - React (Design Systems & Accessibility)",
+        "domain": "Frontend/UI Infrastructure",
+        "required_skills": ["React", "TypeScript", "Design Systems", "Accessibility (a11y)", "Storybook", "CSS Modules"],
+        "experience_years": 4,
+        "description": "Develop and maintain scalable design systems with a focus on accessibility standards and reusable UI components."
+    },
+    {
+        "id": "JD018",
+        "title": "Data Engineer - Real-time Streaming (Spark + Kafka)",
+        "domain": "Data Engineering/Streaming",
+        "required_skills": ["PySpark", "Kafka", "Streaming ETL", "Delta Lake", "Airflow", "AWS S3"],
+        "experience_years": 4,
+        "description": "Design real-time data pipelines using Spark Structured Streaming and Kafka with reliable ETL orchestration."
+    },
+    {
+        "id": "JD019",
+        "title": "Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "domain": "ML/NLP",
+        "required_skills": ["Python", "Transformers", "HuggingFace", "PyTorch", "Model Serving", "FastAPI", "Docker"],
+        "experience_years": 4,
+        "description": "Build and deploy NLP models using transformer architectures with optimized inference pipelines."
+    },
+    {
+        "id": "JD020",
+        "title": "DevOps Engineer - Kubernetes Platform (EKS + GitOps)",
+        "domain": "DevOps/Platform Engineering",
+        "required_skills": ["Kubernetes", "AWS EKS", "Helm", "ArgoCD", "Terraform", "CI/CD", "Prometheus"],
+        "experience_years": 5,
+        "description": "Manage Kubernetes platforms using GitOps practices, infrastructure as code, and production-grade monitoring."
+    },
+    {
+        "id": "JD021",
+        "title": "Backend Engineer - Search Infrastructure (Elasticsearch)",
+        "domain": "Backend/Search",
+        "required_skills": ["Java", "Elasticsearch", "Search Ranking", "REST APIs", "Caching", "Distributed Systems"],
+        "experience_years": 4,
+        "description": "Build and optimize search infrastructure, focusing on indexing, ranking algorithms, and low-latency queries."
+    },
+    {
+        "id": "JD022",
+        "title": "Full Stack Engineer - SaaS (React, Node.js, Multi-tenant Systems)",
+        "domain": "Full Stack/SaaS",
+        "required_skills": ["React", "Node.js", "Multi-tenancy", "RBAC", "PostgreSQL", "GraphQL"],
+        "experience_years": 4,
+        "description": "Develop scalable SaaS applications with multi-tenant architecture and role-based access control."
+    },
+    {
+        "id": "JD023",
+        "title": "AI Engineer - LLM Applications (RAG + Vector Databases)",
+        "domain": "AI/LLM",
+        "required_skills": ["Python", "RAG", "Vector Databases", "FAISS", "LangChain", "Prompt Engineering", "FastAPI"],
+        "experience_years": 3,
+        "description": "Build LLM-powered applications using retrieval-augmented generation and vector similarity search."
+    },
+    {
+        "id": "JD024",
+        "title": "Site Reliability Engineer - Observability (Metrics, Tracing, Logging)",
+        "domain": "SRE/Observability",
+        "required_skills": ["Prometheus", "Grafana", "OpenTelemetry", "Kubernetes", "Linux", "Incident Management"],
+        "experience_years": 5,
+        "description": "Design and implement observability systems including metrics, logs, and distributed tracing for large-scale services."
+    },
+    {
+        "id": "JD025",
+        "title": "Mobile Engineer - Android (Kotlin, Offline-first Architecture)",
+        "domain": "Mobile/Android",
+        "required_skills": ["Kotlin", "Android SDK", "Offline-first", "Room DB", "REST APIs", "MVVM"],
+        "experience_years": 3,
+        "description": "Build Android apps with offline-first capabilities, robust local storage, and scalable architecture patterns."
+    }
+]
