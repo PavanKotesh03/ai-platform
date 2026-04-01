@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     REFRESH_COOKIE_PATH: str = "/api/v1/auth/refresh"
     GROQ_API_KEY: str
     GEMINI_API_KEY: str
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost:5173",   # Vite dev
+        "http://localhost:3000",   # fallback dev
+    ]
 
     class Config:
         env_file = ".env"
