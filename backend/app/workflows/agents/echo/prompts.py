@@ -1,1 +1,0 @@
-ECHO_PROMPT = "Echo the provided input back to the user without any modification."

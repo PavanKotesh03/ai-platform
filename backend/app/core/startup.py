@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from app.db.session import engine, AsyncSessionFactory
 from app.db.models import Base, Workflow
@@ -21,7 +21,14 @@ async def create_tables():
 async def sync_workflows():
     try:
         async with AsyncSessionFactory() as session:
-            for workflow in workflow_registry.get_definitions():
+            registry_workflows = workflow_registry.get_definitions()
+            registry_names = {workflow.name for workflow in registry_workflows}
+
+            await session.execute(
+                delete(Workflow).where(Workflow.workflow_name.not_in(registry_names))
+            )
+
+            for workflow in registry_workflows:
                 result = await session.execute(
                     select(Workflow).where(Workflow.workflow_name == workflow.name)
                 )
@@ -37,7 +44,7 @@ async def sync_workflows():
 
             await session.commit()
 
-            for workflow in workflow_registry.get_definitions():
+            for workflow in registry_workflows:
                 result = await session.execute(
                     select(Workflow).where(Workflow.workflow_name == workflow.name)
                 )
