@@ -8,6 +8,7 @@ from app.core.exceptions import register_exception_handlers
 from app.core.config import settings
 from app.workflows.loader import register_workflows
 from app.db.session import engine
+from app.middleware.auth import AuthMiddleware          # ← ADD
 
 
 setup_logging()
@@ -31,11 +32,13 @@ app = FastAPI(title="Agentic AI Platform", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,   # from config
-    allow_credentials=True,                   # required for cookies
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(AuthMiddleware)                      # ← ADD
 
 register_exception_handlers(app)
 app.include_router(api_router)

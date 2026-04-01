@@ -9,7 +9,7 @@ router = APIRouter(prefix="/status", tags=["Status"])
 
 
 @router.get("")
-async def get_status(current_user_token: tuple[User, str] = Depends(get_current_user)):
+async def get_status(current_user: User = Depends(get_current_user)):
     logger.debug("Status check called")
     workflows = workflow_registry.list_workflows()
     return {
