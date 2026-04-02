@@ -1,7 +1,7 @@
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from app.db.session import engine, AsyncSessionFactory
-from app.db.models import Base, Workflow
+from app.db.models import Base, Workflow, WorkflowSession   # ← correct name
 from app.workflows.registry import workflow_registry
 from app.core.logging import get_logger
 
@@ -24,10 +24,38 @@ async def sync_workflows():
             registry_workflows = workflow_registry.get_definitions()
             registry_names = {workflow.name for workflow in registry_workflows}
 
-            await session.execute(
-                delete(Workflow).where(Workflow.workflow_name.not_in(registry_names))
+            # Step 1: Find obsolete workflow IDs
+            result = await session.execute(
+                select(Workflow.workflow_id, Workflow.workflow_name).where(
+                    Workflow.workflow_name.not_in(registry_names)
+                )
             )
+            obsolete = result.fetchall()
 
+            if obsolete:
+                obsolete_ids = [row.workflow_id for row in obsolete]
+                obsolete_names = [row.workflow_name for row in obsolete]
+
+                logger.info(
+                    "Removing obsolete workflows and their sessions",
+                    workflows=obsolete_names,
+                )
+
+                # Step 2: Delete child sessions first
+                await session.execute(
+                    delete(WorkflowSession).where(
+                        WorkflowSession.workflow_id.in_(obsolete_ids)
+                    )
+                )
+
+                # Step 3: Now safe to delete parent workflows
+                await session.execute(
+                    delete(Workflow).where(
+                        Workflow.workflow_id.in_(obsolete_ids)
+                    )
+                )
+
+            # Step 4: Upsert currently registered workflows
             for workflow in registry_workflows:
                 result = await session.execute(
                     select(Workflow).where(Workflow.workflow_name == workflow.name)
@@ -44,6 +72,7 @@ async def sync_workflows():
 
             await session.commit()
 
+            # Step 5: Assign DB IDs back to registry
             for workflow in registry_workflows:
                 result = await session.execute(
                     select(Workflow).where(Workflow.workflow_name == workflow.name)
@@ -56,6 +85,8 @@ async def sync_workflows():
                     )
 
                 workflow_registry.assign_id(workflow.name, str(db_workflow.workflow_id))
+
+            logger.info("Workflow sync complete", registered=list(registry_names))
 
     except SQLAlchemyError as e:
         logger.exception("Failed to sync workflows with database")

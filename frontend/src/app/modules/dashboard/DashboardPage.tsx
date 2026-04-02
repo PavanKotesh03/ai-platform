@@ -1,3 +1,5 @@
+// src/app/modules/dashboard/DashboardPage.tsx
+
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '@/app/common/Button'
@@ -5,6 +7,11 @@ import { workflowService } from '@/app/services/workflow'
 import { authService } from '@/app/services/auth'
 import { useAuth } from '@/app/store/AuthContext'
 import type { Workflow } from '@/app/store/types'
+
+// Add a new entry here whenever you build a new workflow page
+const WORKFLOW_ROUTES: Record<string, string> = {
+  summarizer: '/summarizer',
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -17,16 +24,12 @@ export default function DashboardPage() {
   useEffect(() => {
     workflowService
       .list()
-      .then((response) => {
-        setWorkflows(response.data.workflows)
-      })
+      .then((response) => setWorkflows(response.data.workflows))
       .catch((err: unknown) => {
         const apiError = err as { response?: { data?: { detail?: string } } }
         setError(apiError.response?.data?.detail || 'Unable to load workflows right now.')
       })
-      .finally(() => {
-        setLoading(false)
-      })
+      .finally(() => setLoading(false))
   }, [])
 
   const handleLogout = async () => {
@@ -38,6 +41,11 @@ export default function DashboardPage() {
       navigate('/login', { replace: true })
       setLogoutLoading(false)
     }
+  }
+
+  const handleWorkflowClick = (workflow: Workflow) => {
+    const route = WORKFLOW_ROUTES[workflow.name.toLowerCase()]
+    if (route) navigate(route)
   }
 
   return (
@@ -80,17 +88,40 @@ export default function DashboardPage() {
           </div>
         ) : (
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {workflows.map((workflow) => (
-              <article
-                key={workflow.id}
-                className="rounded-2xl border border-[#DDDDDD] bg-white p-6 shadow-sm transition hover:border-[#761819]"
-              >
-                <h3 className="text-xl font-semibold text-[#002126]">{workflow.name}</h3>
-                <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
-                  {workflow.description || 'No description provided yet.'}
-                </p>
-              </article>
-            ))}
+            {workflows.map((workflow) => {
+              const isNavigable = !!WORKFLOW_ROUTES[workflow.name.toLowerCase()]
+              return (
+                <article
+                  key={workflow.id}
+                  onClick={() => handleWorkflowClick(workflow)}
+                  className={`rounded-2xl border border-[#DDDDDD] bg-white p-6 shadow-sm transition
+                    ${isNavigable
+                      ? 'cursor-pointer hover:border-[#761819] hover:shadow-md'
+                      : 'cursor-default opacity-60'
+                    }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <h3 className="text-xl font-semibold text-[#002126] capitalize">
+                      {workflow.name}
+                    </h3>
+                    {isNavigable && (
+                      <svg className="h-4 w-4 text-[#761819]" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    )}
+                  </div>
+                  <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
+                    {workflow.description || 'No description provided yet.'}
+                  </p>
+                  {!isNavigable && (
+                    <span className="mt-3 inline-block rounded-full bg-[#F8F8F8] px-2.5 py-1 text-xs text-[#6D6E6F]">
+                      Coming soon
+                    </span>
+                  )}
+                </article>
+              )
+            })}
           </section>
         )}
       </main>

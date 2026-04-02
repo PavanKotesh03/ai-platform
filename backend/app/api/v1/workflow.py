@@ -12,7 +12,7 @@ router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 @router.get("", response_model=WorkflowListResponse)
-async def list_workflows(current_user_token: tuple[User, str] = Depends(get_current_user)):
+async def list_workflows(current_user: User = Depends(get_current_user)):  # ← User not tuple
     workflows = workflow_service.list_workflows()
     return WorkflowListResponse(
         workflows=[WorkflowResponse(id=w.id, name=w.name, description=w.description) for w in workflows]
@@ -23,12 +23,11 @@ async def list_workflows(current_user_token: tuple[User, str] = Depends(get_curr
 async def execute_workflow(
     workflow_id: str,
     request: ExecutionRequest,
-    current_user_token: tuple[User, str] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),   # ← User not tuple
     db: AsyncSession = Depends(get_db),
 ):
-    user, _ = current_user_token
     try:
-        return await workflow_service.execute_workflow(workflow_id, request.input, user.user_id, db)
+        return await workflow_service.execute_workflow(workflow_id, request.input, current_user.user_id, db)
     except AppException:
         raise
     except RuntimeError:
