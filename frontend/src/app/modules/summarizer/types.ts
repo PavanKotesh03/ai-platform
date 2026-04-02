@@ -5,8 +5,8 @@ export type MessageRole = 'user' | 'assistant' | 'error'
 export interface Message {
   id: string
   role: MessageRole
-  content: string          // user: raw input | assistant: final_summary | error: message
-  draftSummary?: string    // only on assistant messages — collapsible
+  content: string
+  draftSummary?: string
   timestamp: Date
 }
 
