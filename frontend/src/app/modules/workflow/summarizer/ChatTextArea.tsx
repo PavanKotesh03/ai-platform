@@ -1,5 +1,3 @@
-// src/app/modules/summarizer/ChatTextArea.tsx
-
 import { KeyboardEvent } from 'react'
 
 interface Props {
@@ -14,7 +12,8 @@ export default function ChatTextArea({ value, onChange, onSubmit, isSubmitting, 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      onSubmit()
+      // ✅ Issue 3 fixed — guard: only submit if value is not empty and not already submitting
+      if (value.trim() && !isSubmitting && !disabled) onSubmit()
     }
   }
 
@@ -27,7 +26,8 @@ export default function ChatTextArea({ value, onChange, onSubmit, isSubmitting, 
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled || isSubmitting}
-          placeholder="Paste or type text to summarize... (Enter to submit)"
+          // ✅ Issue 2 fixed — removed "(Enter to submit)" hint from placeholder
+          placeholder="Paste or type text to summarize..."
           className="flex-1 resize-none bg-transparent text-sm text-[#1E1F21] placeholder-[#6D6E6F] outline-none disabled:opacity-50"
         />
         <button

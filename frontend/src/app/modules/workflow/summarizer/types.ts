@@ -1,5 +1,3 @@
-// src/app/modules/summarizer/types.ts
-
 export type MessageRole = 'user' | 'assistant' | 'error'
 
 export interface Message {

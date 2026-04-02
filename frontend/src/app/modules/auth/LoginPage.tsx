@@ -1,5 +1,3 @@
-// src/app/modules/auth/LoginPage.tsx
-
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -12,6 +10,8 @@ interface FormData {
   email: string
   password: string
 }
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -66,10 +66,7 @@ export default function LoginPage() {
               error={errors.email?.message}
               {...register('email', {
                 required: 'Email is required',
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Enter a valid email',
-                },
+                pattern: { value: emailPattern, message: 'Enter a valid email' },
               })}
             />
             <Input
@@ -77,9 +74,7 @@ export default function LoginPage() {
               type="password"
               placeholder="Enter your password"
               error={errors.password?.message}
-              {...register('password', {
-                required: 'Password is required',
-              })}
+              {...register('password', { required: 'Password is required' })}
             />
 
             {serverError && <p className="text-sm text-red-500">{serverError}</p>}

@@ -1,14 +1,11 @@
-// src/app/modules/dashboard/DashboardPage.tsx
-
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '@/app/common/Button'
 import { workflowService } from '@/app/services/workflow'
 import { authService } from '@/app/services/auth'
 import { useAuth } from '@/app/store/AuthContext'
+import Button from '@/app/common/Button'
 import type { Workflow } from '@/app/store/types'
 
-// Add a new entry here whenever you build a new workflow page
 const WORKFLOW_ROUTES: Record<string, string> = {
   summarizer: '/summarizer',
 }
@@ -22,14 +19,19 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    workflowService
-      .list()
-      .then((response) => setWorkflows(response.data.workflows))
+    let cancelled = false  // ✅ StrictMode safe
+
+    workflowService.list()
+      .then((res) => { if (!cancelled) setWorkflows(res.data.workflows) })
       .catch((err: unknown) => {
-        const apiError = err as { response?: { data?: { detail?: string } } }
-        setError(apiError.response?.data?.detail || 'Unable to load workflows right now.')
+        if (!cancelled) {
+          const e = err as { response?: { data?: { detail?: string } } }
+          setError(e.response?.data?.detail || 'Unable to load workflows right now.')
+        }
       })
-      .finally(() => setLoading(false))
+      .finally(() => { if (!cancelled) setLoading(false) })
+
+    return () => { cancelled = true }
   }, [])
 
   const handleLogout = async () => {
@@ -45,7 +47,10 @@ export default function DashboardPage() {
 
   const handleWorkflowClick = (workflow: Workflow) => {
     const route = WORKFLOW_ROUTES[workflow.name.toLowerCase()]
-    if (route) navigate(route)
+    if (route) {
+      // ✅ pass workflowId via state — no extra API call in summarizer
+      navigate(route, { state: { workflowId: workflow.id } })
+    }
   }
 
   return (
@@ -62,7 +67,7 @@ export default function DashboardPage() {
               <p className="text-xs text-[#6D6E6F]">{user?.email}</p>
             </div>
             <div className="w-28">
-              <Button type="button" variant="ghost" loading={logoutLoading} onClick={handleLogout}>
+              <Button variant="ghost" loading={logoutLoading} onClick={handleLogout}>
                 Logout
               </Button>
             </div>
@@ -73,10 +78,10 @@ export default function DashboardPage() {
       <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {loading ? (
           <div className="rounded-2xl border border-[#DDDDDD] bg-white p-10 text-center shadow-sm">
-            <p className="text-sm font-medium text-[#6D6E6F]">Loading workflows...</p>
+            <p className="text-sm text-[#6D6E6F]">Loading workflows...</p>
           </div>
         ) : error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
             {error}
           </div>
         ) : workflows.length === 0 ? (

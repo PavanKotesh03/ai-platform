@@ -6,8 +6,8 @@ export default function GuestRoute() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8] px-4">
-        <p className="text-sm font-medium text-[#6D6E6F]">loading sesssion...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8]">
+        <p className="text-sm text-[#6D6E6F]">Loading...</p>
       </div>
     )
   }

@@ -1,40 +1,34 @@
-// src/app/modules/summarizer/useSummarizer.ts
-
 import { useState, useEffect, useRef, RefObject } from 'react'
+import { useLocation } from 'react-router-dom'
 import { workflowService } from '@/app/services/workflow'
 import type { Message, SummarizerResult } from './types'
 
-const WORKFLOW_NAME = 'summarizer'
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+}
 
-let idCounter = 0
-function generateId() {
-  return `msg-${++idCounter}`
+function isSummarizerResult(data: unknown): data is SummarizerResult {
+  if (typeof data !== 'object' || data === null) return false
+  const o = data as Record<string, unknown>
+  return typeof o.final_summary === 'string'
 }
 
 export function useSummarizer() {
+  const location = useLocation()
+
+  // ✅ Read workflowId from navigation state — no extra API call
+  const workflowId: string | null =
+    (location.state as { workflowId?: string })?.workflowId ?? null
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [workflowId, setWorkflowId] = useState<string | null>(null)
-  const [workflowReady, setWorkflowReady] = useState(false)
-  const [workflowError, setWorkflowError] = useState('')
   const bottomRef = useRef<HTMLDivElement | null>(null) as RefObject<HTMLDivElement>
 
-  useEffect(() => {
-    workflowService.list().then((res) => {
-      const found = res.data.workflows.find(
-        (w) => w.name.toLowerCase() === WORKFLOW_NAME
-      )
-      if (!found) {
-        setWorkflowError('Summarizer is not available.')
-        return
-      }
-      setWorkflowId(found.id)
-      setWorkflowReady(true)
-    }).catch(() => {
-      setWorkflowError('Failed to load. Please refresh.')
-    })
-  }, [])
+  const workflowReady = !!workflowId
+  const workflowError = workflowId
+    ? ''
+    : 'Workflow not found. Please go back to the dashboard and try again.'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -57,12 +51,14 @@ export function useSummarizer() {
       const res = await workflowService.execute(workflowId, {
         input: { input_text: trimmed },
       })
-      const data = res.data.data as unknown as SummarizerResult
+      const raw = res.data.data
+      if (!isSummarizerResult(raw)) throw new Error('Unexpected response from summarizer')
+
       setMessages((prev) => [...prev, {
         id: generateId(),
         role: 'assistant',
-        content: data.final_summary,
-        draftSummary: data.draft_summary,
+        content: raw.final_summary,
+        draftSummary: raw.draft_summary,
         timestamp: new Date(),
       }])
     } catch (err: unknown) {
@@ -70,13 +66,14 @@ export function useSummarizer() {
       setMessages((prev) => [...prev, {
         id: generateId(),
         role: 'error',
-        content: e.response?.data?.detail || 'Something went wrong.',
+        content: e.response?.data?.detail || 'Something went wrong. Please try again.',
         timestamp: new Date(),
       }])
     } finally {
       setIsSubmitting(false)
     }
   }
+
   return {
     messages,
     input,

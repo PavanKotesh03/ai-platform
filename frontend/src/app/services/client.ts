@@ -6,7 +6,7 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-let isRefreshing = false  // ← prevents parallel refresh calls
+let isRefreshing = false
 
 client.interceptors.response.use(
   (response) => response,
@@ -22,9 +22,9 @@ client.interceptors.response.use(
       !original._retry &&
       !isRefreshCall &&
       !isLoginCall &&
-      !isGetMeCall       // ← do NOT retry getMe, it's the session check
+      !isGetMeCall
     ) {
-      if (isRefreshing) return Promise.reject(error)  // ← block parallel retries
+      if (isRefreshing) return Promise.reject(error)
       isRefreshing = true
       original._retry = true
 

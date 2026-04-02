@@ -1,5 +1,3 @@
-// src/app/modules/auth/RegisterPage.tsx
-
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -12,6 +10,8 @@ interface FormData {
   email: string
   password: string
 }
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -53,10 +53,7 @@ export default function RegisterPage() {
               error={errors.username?.message}
               {...register('username', {
                 required: 'Username is required',
-                minLength: {
-                  value: 3,
-                  message: 'Username must be at least 3 characters',
-                },
+                minLength: { value: 3, message: 'Username must be at least 3 characters' },
               })}
             />
             <Input
@@ -66,10 +63,7 @@ export default function RegisterPage() {
               error={errors.email?.message}
               {...register('email', {
                 required: 'Email is required',
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Enter a valid email',
-                },
+                pattern: { value: emailPattern, message: 'Enter a valid email' },
               })}
             />
             <Input
@@ -79,10 +73,7 @@ export default function RegisterPage() {
               error={errors.password?.message}
               {...register('password', {
                 required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
+                minLength: { value: 8, message: 'Password must be at least 8 characters' },
               })}
             />
 
