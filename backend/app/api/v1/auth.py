@@ -27,13 +27,11 @@ async def refresh(request: Request, response: Response, db: AsyncSession = Depen
 @router.post("/logout", response_model=MessageResponse)
 async def logout(
     response: Response,
-    current_user: tuple[User, str] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),   # ← User not tuple
 ):
-    user, _ = current_user
-    return await auth_service.logout(response, user.user_id)
+    return await auth_service.logout(response, current_user.user_id)
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user_token: tuple[User, str] = Depends(get_current_user)):
-    user, _ = current_user_token
-    return user
+async def get_me(current_user: User = Depends(get_current_user)):  # ← User not tuple
+    return current_user

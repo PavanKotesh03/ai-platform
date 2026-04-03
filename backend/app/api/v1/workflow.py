@@ -17,7 +17,7 @@ router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 @router.get("", response_model=WorkflowListResponse)
-async def list_workflows(current_user_token: tuple[User, str] = Depends(get_current_user)):
+async def list_workflows(current_user: User = Depends(get_current_user)):  # ← User not tuple
     workflows = workflow_service.list_workflows()
     return WorkflowListResponse(
         workflows=[WorkflowResponse(id=w.id, name=w.name, description=w.description) for w in workflows]
@@ -28,12 +28,10 @@ async def list_workflows(current_user_token: tuple[User, str] = Depends(get_curr
 async def execute_workflow(
     workflow_id: str,
     request: Request,
-    current_user_token: tuple[User, str] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    user, _ = current_user_token
     temp_file_path: str | None = None
-
     content_type = request.headers.get("content-type", "")
 
     try:
@@ -53,7 +51,7 @@ async def execute_workflow(
             parsed = ExecutionRequest.model_validate(body)
             input_payload = parsed.input
 
-        return await workflow_service.execute_workflow(workflow_id, input_payload, user.user_id, db)
+        return await workflow_service.execute_workflow(workflow_id, input_payload, current_user.user_id, db)
     except AppException:
         raise
     except RuntimeError:

@@ -1,23 +1,25 @@
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '../common/ProtectedRoute'
 import GuestRoute from '../common/GuestRoute'
-import RegisterPage from '../modules/auth/RegisterPage'
 import LoginPage from '../modules/auth/LoginPage'
+import RegisterPage from '../modules/auth/RegisterPage'
 import DashboardPage from '../modules/dashboard/DashboardPage'
 import WorkflowRunPage from '../modules/workflows/WorkflowRunPage'
+import SummarizerPage from '../modules/workflow/summarizer/SummarizerPage'
 
 export default function AppRoutes() {
   return (
     <Routes>
-    <Route element={<GuestRoute />}>
+      <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-    </Route>
+      </Route>
 
-        <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/workflows/:workflowId" element={<WorkflowRunPage />} />
-        </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/workflows/:workflowId" element={<WorkflowRunPage />} />
+        <Route path="/summarizer" element={<SummarizerPage />} />
+      </Route>
     </Routes>
   )
 }
