@@ -25,15 +25,20 @@ export default function ChatDisplayArea({ messages, isSubmitting, bottomRef }: P
   }
 
   if (messages.length === 0 && !isSubmitting) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-center px-4">
+  return (
+    <div className="flex flex-1 items-center justify-center text-center px-4">
+      <div className="flex flex-col items-center gap-4">
+        {/* Agent icon */}
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#761819]">
+          <span className="text-xl font-bold text-white">A</span>
+        </div>
         <div>
-          <p className="text-base font-medium text-[#002126]">Paste any text to summarize</p>
-          <p className="mt-1 text-sm text-[#6D6E6F]">Groq drafts · Gemini refines</p>
+          <p className="text-base font-medium text-[#002126]">Summarizer</p>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">

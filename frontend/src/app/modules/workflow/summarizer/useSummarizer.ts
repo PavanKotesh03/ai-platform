@@ -16,7 +16,6 @@ function isSummarizerResult(data: unknown): data is SummarizerResult {
 export function useSummarizer() {
   const location = useLocation()
 
-  // ✅ Read workflowId from navigation state — no extra API call
   const workflowId: string | null =
     (location.state as { workflowId?: string })?.workflowId ?? null
 

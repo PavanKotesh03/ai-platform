@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 class SummarizerWorkflow(BaseWorkflow):
     name = "summarizer"
-    description = "Multi-step text summarizer: Groq drafts, Gemini refines"
+    description ="Summarizes the text"
 
     def __init__(self):
         self._graph = self._build_graph()

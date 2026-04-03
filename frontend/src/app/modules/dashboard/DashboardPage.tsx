@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    let cancelled = false  // ✅ StrictMode safe
+    let cancelled = false 
 
     workflowService.list()
       .then((res) => { if (!cancelled) setWorkflows(res.data.workflows) })
@@ -48,7 +48,6 @@ export default function DashboardPage() {
   const handleWorkflowClick = (workflow: Workflow) => {
     const route = WORKFLOW_ROUTES[workflow.name.toLowerCase()]
     if (route) {
-      // ✅ pass workflowId via state — no extra API call in summarizer
       navigate(route, { state: { workflowId: workflow.id } })
     }
   }

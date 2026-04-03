@@ -22,7 +22,6 @@ export default function SummarizerPage() {
 
       <header className="shrink-0 border-b border-[#DDDDDD] bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
-          {/* ✅ No back arrow — just title */}
           <h1 className="text-sm font-semibold text-[#002126]">Summarizer</h1>
 
           {messages.length > 0 && (

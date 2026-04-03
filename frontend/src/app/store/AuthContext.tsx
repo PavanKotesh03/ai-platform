@@ -15,7 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false  // ✅ prevents StrictMode double state update
+    let cancelled = false  
 
     authService.getMe()
       .then((res) => { if (!cancelled) setUser(res.data) })
