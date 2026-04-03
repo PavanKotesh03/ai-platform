@@ -18,6 +18,14 @@ export default function DashboardPage() {
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const openWorkflow = (workflow: Workflow) => {
+    if (workflow.name !== 'smart_resume_flow') {
+      return
+    }
+
+    navigate(`/workflows/${workflow.id}`, { state: { workflow } })
+  }
+
   useEffect(() => {
     let cancelled = false 
 
@@ -93,11 +101,16 @@ export default function DashboardPage() {
         ) : (
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {workflows.map((workflow) => {
-              const isNavigable = !!WORKFLOW_ROUTES[workflow.name.toLowerCase()]
+              const isSmartResume = workflow.name === 'smart_resume_flow'
+              const isNavigable = isSmartResume || !!WORKFLOW_ROUTES[workflow.name.toLowerCase()]
+              const handleClick = isSmartResume 
+                ? () => openWorkflow(workflow)
+                : () => handleWorkflowClick(workflow)
+
               return (
                 <article
                   key={workflow.id}
-                  onClick={() => handleWorkflowClick(workflow)}
+                  onClick={handleClick}
                   className={`rounded-2xl border border-[#DDDDDD] bg-white p-6 shadow-sm transition
                     ${isNavigable
                       ? 'cursor-pointer hover:border-[#761819] hover:shadow-md'
@@ -118,7 +131,12 @@ export default function DashboardPage() {
                   <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
                     {workflow.description || 'No description provided yet.'}
                   </p>
-                  {!isNavigable && (
+                  {isSmartResume && (
+                    <span className="mt-3 inline-block rounded-full bg-[#761819] text-white px-2.5 py-1 text-xs">
+                      Execute
+                    </span>
+                  )}
+                  {!isNavigable && !isSmartResume && (
                     <span className="mt-3 inline-block rounded-full bg-[#F8F8F8] px-2.5 py-1 text-xs text-[#6D6E6F]">
                       Coming soon
                     </span>
