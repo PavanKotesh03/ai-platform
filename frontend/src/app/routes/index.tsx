@@ -4,6 +4,7 @@ import GuestRoute from '../common/GuestRoute'
 import RegisterPage from '../modules/auth/RegisterPage'
 import LoginPage from '../modules/auth/LoginPage'
 import DashboardPage from '../modules/dashboard/DashboardPage'
+import WorkflowRunPage from '../modules/workflows/WorkflowRunPage'
 
 export default function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/workflows/:workflowId" element={<WorkflowRunPage />} />
         </Route>
     </Routes>
   )

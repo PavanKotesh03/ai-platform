@@ -14,6 +14,14 @@ export default function DashboardPage() {
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const openWorkflow = (workflow: Workflow) => {
+    if (workflow.name !== 'smart_resume_flow') {
+      return
+    }
+
+    navigate(`/workflows/${workflow.id}`, { state: { workflow } })
+  }
+
   useEffect(() => {
     workflowService
       .list()
@@ -89,6 +97,17 @@ export default function DashboardPage() {
                 <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
                   {workflow.description || 'No description provided yet.'}
                 </p>
+                <div className="mt-5">
+                  {workflow.name === 'smart_resume_flow' ? (
+                    <Button type="button" onClick={() => openWorkflow(workflow)}>
+                      execute
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="ghost" disabled>
+                      execute
+                    </Button>
+                  )}
+                </div>
               </article>
             ))}
           </section>

@@ -1,0 +1,57 @@
+{
+    "I001": [
+        {"date": "2025-06-10", "time": "10:00 AM", "available": true},
+        {"date": "2025-06-10", "time": "02:00 PM", "available": false},
+        {"date": "2025-06-11", "time": "11:00 AM", "available": true}
+    ],
+    "I006": [
+        {"date": "2025-06-12", "time": "09:30 AM", "available": true},
+        {"date": "2025-06-12", "time": "01:30 PM", "available": false},
+        {"date": "2025-06-13", "time": "11:00 AM", "available": true}
+    ],
+    "I007": [
+        {"date": "2025-06-12", "time": "10:00 AM", "available": true},
+        {"date": "2025-06-13", "time": "02:00 PM", "available": true},
+        {"date": "2025-06-13", "time": "04:00 PM", "available": false}
+    ],
+    "I008": [
+        {"date": "2025-06-12", "time": "08:00 AM", "available": true},
+        {"date": "2025-06-12", "time": "03:00 PM", "available": false},
+        {"date": "2025-06-14", "time": "10:30 AM", "available": true}
+    ],
+    "I009": [
+        {"date": "2025-06-13", "time": "11:30 AM", "available": true},
+        {"date": "2025-06-13", "time": "03:30 PM", "available": true},
+        {"date": "2025-06-14", "time": "09:00 AM", "available": false}
+    ],
+    "I010": [
+        {"date": "2025-06-12", "time": "12:00 PM", "available": true},
+        {"date": "2025-06-13", "time": "10:00 AM", "available": false},
+        {"date": "2025-06-14", "time": "02:30 PM", "available": true}
+    ],
+    "I011": [
+        {"date": "2025-06-13", "time": "09:00 AM", "available": true},
+        {"date": "2025-06-13", "time": "01:00 PM", "available": false},
+        {"date": "2025-06-15", "time": "11:00 AM", "available": true}
+    ],
+    "I012": [
+        {"date": "2025-06-14", "time": "10:30 AM", "available": true},
+        {"date": "2025-06-14", "time": "02:00 PM", "available": true},
+        {"date": "2025-06-15", "time": "04:00 PM", "available": false}
+    ],
+    "I013": [
+        {"date": "2025-06-12", "time": "11:00 AM", "available": true},
+        {"date": "2025-06-15", "time": "01:30 PM", "available": true},
+        {"date": "2025-06-15", "time": "03:30 PM", "available": false}
+    ],
+    "I014": [
+        {"date": "2025-06-13", "time": "08:30 AM", "available": true},
+        {"date": "2025-06-14", "time": "12:30 PM", "available": false},
+        {"date": "2025-06-15", "time": "10:00 AM", "available": true}
+    ],
+    "I015": [
+        {"date": "2025-06-12", "time": "09:00 AM", "available": false},
+        {"date": "2025-06-14", "time": "11:30 AM", "available": true},
+        {"date": "2025-06-15", "time": "02:00 PM", "available": true}
+    ]
+}
