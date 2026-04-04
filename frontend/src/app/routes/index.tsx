@@ -5,7 +5,6 @@ import LoginPage from '../modules/auth/LoginPage'
 import RegisterPage from '../modules/auth/RegisterPage'
 import DashboardPage from '../modules/dashboard/DashboardPage'
 import WorkflowRunPage from '../modules/workflows/WorkflowRunPage'
-import SummarizerPage from '../modules/workflow/summarizer/SummarizerPage'
 
 export default function AppRoutes() {
   return (
@@ -17,8 +16,7 @@ export default function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<DashboardPage />} />
-        <Route path="/workflows/:workflowId" element={<WorkflowRunPage />} />
-        <Route path="/summarizer" element={<SummarizerPage />} />
+        <Route path="/workflows/:workflowName" element={<WorkflowRunPage />} />
       </Route>
     </Routes>
   )

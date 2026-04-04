@@ -1,10 +1,13 @@
-import { useNavigate } from 'react-router-dom'
 import { useSummarizer } from './useSummarizer'
 import ChatDisplayArea from './ChatDisplayArea'
 import ChatTextArea from './ChatTextArea'
 
-export default function SummarizerPage() {
-  const navigate = useNavigate()
+interface SummarizerPageProps {
+  workflowId?: string
+  workflowName?: string
+}
+
+export default function SummarizerPage({ workflowId, workflowName }: SummarizerPageProps) {
   const {
     messages,
     input,
@@ -15,14 +18,14 @@ export default function SummarizerPage() {
     submit,
     clearMessages,
     bottomRef,
-  } = useSummarizer()
+  } = useSummarizer(workflowId)
 
   return (
     <div className="flex h-screen flex-col bg-[#F8F8F8]">
 
       <header className="shrink-0 border-b border-[#DDDDDD] bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
-          <h1 className="text-sm font-semibold text-[#002126]">Summarizer</h1>
+          <h1 className="text-sm font-semibold text-[#002126]">{workflowName ?? 'Summarizer'}</h1>
 
           {messages.length > 0 && (
             <button

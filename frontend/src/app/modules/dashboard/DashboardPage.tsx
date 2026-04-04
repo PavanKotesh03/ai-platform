@@ -6,9 +6,7 @@ import { useAuth } from '@/app/store/AuthContext'
 import Button from '@/app/common/Button'
 import type { Workflow } from '@/app/store/types'
 
-const WORKFLOW_ROUTES: Record<string, string> = {
-  summarizer: '/summarizer',
-}
+const SUPPORTED_WORKFLOWS = new Set(['smart_resume_flow', 'summarizer'])
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -19,11 +17,7 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
 
   const openWorkflow = (workflow: Workflow) => {
-    if (workflow.name !== 'smart_resume_flow') {
-      return
-    }
-
-    navigate(`/workflows/${workflow.id}`, { state: { workflow } })
+    navigate(`/workflows/${encodeURIComponent(workflow.name)}`, { state: { workflow } })
   }
 
   useEffect(() => {
@@ -50,13 +44,6 @@ export default function DashboardPage() {
       setUser(null)
       navigate('/login', { replace: true })
       setLogoutLoading(false)
-    }
-  }
-
-  const handleWorkflowClick = (workflow: Workflow) => {
-    const route = WORKFLOW_ROUTES[workflow.name.toLowerCase()]
-    if (route) {
-      navigate(route, { state: { workflowId: workflow.id } })
     }
   }
 
@@ -101,11 +88,8 @@ export default function DashboardPage() {
         ) : (
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {workflows.map((workflow) => {
-              const isSmartResume = workflow.name === 'smart_resume_flow'
-              const isNavigable = isSmartResume || !!WORKFLOW_ROUTES[workflow.name.toLowerCase()]
-              const handleClick = isSmartResume 
-                ? () => openWorkflow(workflow)
-                : () => handleWorkflowClick(workflow)
+              const isNavigable = SUPPORTED_WORKFLOWS.has(workflow.name.toLowerCase())
+              const handleClick = isNavigable ? () => openWorkflow(workflow) : undefined
 
               return (
                 <article
@@ -131,16 +115,6 @@ export default function DashboardPage() {
                   <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
                     {workflow.description || 'No description provided yet.'}
                   </p>
-                  {isSmartResume && (
-                    <span className="mt-3 inline-block rounded-full bg-[#761819] text-white px-2.5 py-1 text-xs">
-                      Execute
-                    </span>
-                  )}
-                  {!isNavigable && !isSmartResume && (
-                    <span className="mt-3 inline-block rounded-full bg-[#F8F8F8] px-2.5 py-1 text-xs text-[#6D6E6F]">
-                      Coming soon
-                    </span>
-                  )}
                 </article>
               )
             })}
