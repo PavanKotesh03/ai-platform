@@ -5,6 +5,7 @@ import { authService } from '@/app/services/auth'
 import { workflowService } from '@/app/services/workflow'
 import { useAuth } from '@/app/store/AuthContext'
 import type { ExecutionResponse, Workflow } from '@/app/store/types'
+import SummarizerPage from '@/app/modules/workflow/summarizer/SummarizerPage'
 
 type ReviewDecision = 'pending' | 'approve' | 'reject'
 
@@ -15,12 +16,17 @@ interface LocationState {
 export default function WorkflowRunPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { workflowId = '' } = useParams()
+  const { workflowName = '' } = useParams()
   const { user, setUser } = useAuth()
+  const decodedWorkflowName = decodeURIComponent(workflowName)
 
-  //
+  // Prefer passed state when it matches the current name-based route.
   const [workflow, setWorkflow] = useState<Workflow | null>(
-    (location.state as LocationState | null)?.workflow ?? null,
+    (() => {
+      const fromState = (location.state as LocationState | null)?.workflow ?? null
+      if (!fromState) return null
+      return fromState.name.toLowerCase() === decodedWorkflowName.toLowerCase() ? fromState : null
+    })(),
   )
 
   //
@@ -33,15 +39,22 @@ export default function WorkflowRunPage() {
   const [result, setResult] = useState<ExecutionResponse | null>(null)
 
   useEffect(() => {
-    if (workflow) {
+    if (workflow && workflow.name.toLowerCase() === decodedWorkflowName.toLowerCase()) {
       return
     }
+
+    setLoadingWorkflow(true)
 
     workflowService
       .list()
       .then((response) => {
-        const matchedWorkflow = response.data.workflows.find((item) => item.id === workflowId) ?? null
+        const matchedWorkflow = response.data.workflows.find(
+          (item) => item.name.toLowerCase() === decodedWorkflowName.toLowerCase(),
+        ) ?? null
         setWorkflow(matchedWorkflow)
+        if (!matchedWorkflow) {
+          setError(`Workflow "${decodedWorkflowName}" not found.`)
+        }
       })
       .catch((err: unknown) => {
         const apiError = err as { response?: { data?: { detail?: string } } }
@@ -50,7 +63,7 @@ export default function WorkflowRunPage() {
       .finally(() => {
         setLoadingWorkflow(false) // off spinner
       })
-  }, [workflow, workflowId])
+  }, [workflow, decodedWorkflowName])
 
   const handleLogout = async () => {
     setLogoutLoading(true) //sow spinner
@@ -114,6 +127,10 @@ export default function WorkflowRunPage() {
   const matchedJd = resultData?.matched_jd as Record<string, unknown> | undefined
   const assignedInterviewer = resultData?.assigned_interviewer as Record<string, unknown> | undefined
   const scheduleDetails = resultData?.schedule_details as Record<string, unknown> | undefined
+
+  if (!loadingWorkflow && workflow?.name.toLowerCase() === 'summarizer') {
+    return <SummarizerPage workflowId={workflow.id} workflowName={workflow.name} />
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">

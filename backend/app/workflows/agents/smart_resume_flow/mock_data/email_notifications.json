@@ -134,5 +134,13 @@
         "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
         "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
         "status": "SENT"
+    },
+    {
+        "sent_at": "2026-04-03 17:15:18",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
     }
 ]

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, RefObject } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { workflowService } from '@/app/services/workflow'
 import type { Message, SummarizerResult } from './types'
 
@@ -13,11 +13,12 @@ function isSummarizerResult(data: unknown): data is SummarizerResult {
   return typeof o.final_summary === 'string'
 }
 
-export function useSummarizer() {
+export function useSummarizer(explicitWorkflowId?: string) {
   const location = useLocation()
+  const { workflowId: routeWorkflowId } = useParams()
 
-  const workflowId: string | null =
-    (location.state as { workflowId?: string })?.workflowId ?? null
+  const stateWorkflowId = (location.state as { workflowId?: string } | null)?.workflowId
+  const workflowId: string | null = explicitWorkflowId ?? routeWorkflowId ?? stateWorkflowId ?? null
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
