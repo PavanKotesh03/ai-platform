@@ -1,36 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Button from '@/app/common/Button'
 import { authService } from '@/app/services/auth'
 import { workflowService } from '@/app/services/workflow'
 import { useAuth } from '@/app/store/AuthContext'
 import type { ExecutionResponse, Workflow } from '@/app/store/types'
-import SummarizerPage from '@/app/modules/workflow/summarizer/SummarizerPage'
 
 type ReviewDecision = 'pending' | 'approve' | 'reject'
 
-interface LocationState {
-  workflow?: Workflow
-}
-
-export default function WorkflowRunPage() {
-  const navigate = useNavigate()
+export default function SmartResumePage() {
   const location = useLocation()
-  const { workflowName = '' } = useParams()
+  const navigate = useNavigate()
   const { user, setUser } = useAuth()
-  const decodedWorkflowName = decodeURIComponent(workflowName)
 
-  // Prefer passed state when it matches the current name-based route.
-  const [workflow, setWorkflow] = useState<Workflow | null>(
-    (() => {
-      const fromState = (location.state as LocationState | null)?.workflow ?? null
-      if (!fromState) return null
-      return fromState.name.toLowerCase() === decodedWorkflowName.toLowerCase() ? fromState : null
-    })(),
-  )
+  const workflow = (location.state as { workflow?: Workflow } | null)?.workflow
 
-  //
-  const [loadingWorkflow, setLoadingWorkflow] = useState(!workflow)
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [reviewDecision, setReviewDecision] = useState<ReviewDecision>('pending')
@@ -38,35 +22,8 @@ export default function WorkflowRunPage() {
   const [error, setError] = useState('')
   const [result, setResult] = useState<ExecutionResponse | null>(null)
 
-  useEffect(() => {
-    if (workflow && workflow.name.toLowerCase() === decodedWorkflowName.toLowerCase()) {
-      return
-    }
-
-    setLoadingWorkflow(true)
-
-    workflowService
-      .list()
-      .then((response) => {
-        const matchedWorkflow = response.data.workflows.find(
-          (item) => item.name.toLowerCase() === decodedWorkflowName.toLowerCase(),
-        ) ?? null
-        setWorkflow(matchedWorkflow)
-        if (!matchedWorkflow) {
-          setError(`Workflow "${decodedWorkflowName}" not found.`)
-        }
-      })
-      .catch((err: unknown) => {
-        const apiError = err as { response?: { data?: { detail?: string } } }
-        setError(apiError.response?.data?.detail || 'Unable to load workflow details right now.')
-      })
-      .finally(() => {
-        setLoadingWorkflow(false) // off spinner
-      })
-  }, [workflow, decodedWorkflowName])
-
   const handleLogout = async () => {
-    setLogoutLoading(true) //sow spinner
+    setLogoutLoading(true)
     try {
       await authService.logout()
     } finally {
@@ -77,27 +34,14 @@ export default function WorkflowRunPage() {
   }
 
   const humanApproved = useMemo(() => {
-    if (reviewDecision === 'approve') {
-      return true
-    }
-    if (reviewDecision === 'reject') {
-      return false
-    }
+    if (reviewDecision === 'approve') return true
+    if (reviewDecision === 'reject') return false
     return undefined
   }, [reviewDecision])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
-    if (!workflow) {
-      return
-    }
-
-    if (workflow.name !== 'smart_resume_flow') {
-      setError('This workflow is not yet available in the frontend.')
-      return
-    }
-
+    if (!workflow) return
     if (!resumeFile) {
       setError('A PDF resume is required.')
       return
@@ -107,12 +51,11 @@ export default function WorkflowRunPage() {
     setError('')
 
     try {
-      const input = {
-        human_approved: humanApproved,
-      }
-
-      const response = await workflowService.executeWithPdf(workflow.id, input, resumeFile)
-
+      const response = await workflowService.executeWithPdf(
+        workflow.id,
+        { human_approved: humanApproved },
+        resumeFile,
+      )
       setResult(response.data)
     } catch (err: unknown) {
       const apiError = err as { response?: { data?: { detail?: string } } }
@@ -128,19 +71,13 @@ export default function WorkflowRunPage() {
   const assignedInterviewer = resultData?.assigned_interviewer as Record<string, unknown> | undefined
   const scheduleDetails = resultData?.schedule_details as Record<string, unknown> | undefined
 
-  if (!loadingWorkflow && workflow?.name.toLowerCase() === 'summarizer') {
-    return <SummarizerPage workflowId={workflow.id} workflowName={workflow.name} />
-  }
-
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <header className="border-b border-[#DDDDDD] bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <p className="text-sm font-medium text-[#761819]">Agentic AI Platform</p>
-            <h1 className="text-2xl font-bold text-[#002126]">
-              {workflow?.name ?? 'Workflow'}
-            </h1>
+            <h1 className="text-2xl font-bold text-[#002126]">Smart Resume Flow</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -149,7 +86,7 @@ export default function WorkflowRunPage() {
             </div>
             <div className="w-28">
               <Button type="button" variant="ghost" loading={logoutLoading} onClick={handleLogout}>
-                Logout 
+                Logout
               </Button>
             </div>
           </div>
@@ -158,24 +95,16 @@ export default function WorkflowRunPage() {
 
       <main className="mx-auto grid items-start w-full max-w-5xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
         <section className="rounded-2xl border border-[#DDDDDD] bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-[#761819]">
-                <Link to="/" className="hover:underline">
-                  Back to dashboard
-                </Link>
-              </p>
-              <h2 className="mt-2 text-2xl font-bold text-[#002126]">
-                Run Smart Resume Flow
-              </h2>
-            </div>
+          <div>
+            <p className="text-sm font-medium text-[#761819]">
+              <Link to="/" className="hover:underline">Back to dashboard</Link>
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-[#002126]">Run Smart Resume Flow</h2>
           </div>
 
-          {loadingWorkflow ? (
-            <p className="mt-6 text-sm text-[#6D6E6F]">Loading workflow...</p>
-          ) : workflow?.name !== 'smart_resume_flow' ? (
-            <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-              This route currently supports only `smart_resume_flow`.
+          {!workflow ? (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              Workflow not found. Please go back to the dashboard and try again.
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
@@ -184,47 +113,26 @@ export default function WorkflowRunPage() {
                 <input
                   type="file"
                   accept="application/pdf,.pdf"
-                  onChange={(event) => {
-                    const nextFile = event.target.files?.[0] ?? null
-                    setResumeFile(nextFile)
-                  }}
+                  onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)}
                   className="rounded-xl border border-[#DDDDDD] bg-white px-4 py-3 text-sm text-[#1E1F21] file:mr-4 file:rounded-lg file:border-0 file:bg-[#761819] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
                 />
-                
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-[#1E1F21]">Human review decision</label>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DDDDDD] px-4 py-3 text-sm text-[#1E1F21]">
-                    <input
-                      type="radio"
-                      name="reviewDecision"
-                      checked={reviewDecision === 'pending'}
-                      onChange={() => setReviewDecision('pending')}
-                    />
-                    Pending review
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DDDDDD] px-4 py-3 text-sm text-[#1E1F21]">
-                    <input
-                      type="radio"
-                      name="reviewDecision"
-                      checked={reviewDecision === 'approve'}
-                      onChange={() => setReviewDecision('approve')}
-                    />
-                    Approve
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DDDDDD] px-4 py-3 text-sm text-[#1E1F21]">
-                    <input
-                      type="radio"
-                      name="reviewDecision"
-                      checked={reviewDecision === 'reject'}
-                      onChange={() => setReviewDecision('reject')}
-                    />
-                    Reject
-                  </label>
+                  {(['pending', 'approve', 'reject'] as ReviewDecision[]).map((option) => (
+                    <label key={option} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DDDDDD] px-4 py-3 text-sm text-[#1E1F21]">
+                      <input
+                        type="radio"
+                        name="reviewDecision"
+                        checked={reviewDecision === option}
+                        onChange={() => setReviewDecision(option)}
+                      />
+                      {option === 'pending' ? 'Pending review' : option.charAt(0).toUpperCase() + option.slice(1)}
+                    </label>
+                  ))}
                 </div>
-              
               </div>
 
               {error && (
@@ -234,9 +142,7 @@ export default function WorkflowRunPage() {
               )}
 
               <div className="w-full sm:w-40">
-                <Button type="submit" loading={submitting}>
-                  Run workflow
-                </Button>
+                <Button type="submit" loading={submitting}>Run workflow</Button>
               </div>
             </form>
           )}
@@ -244,7 +150,6 @@ export default function WorkflowRunPage() {
 
         <aside className="rounded-2xl border border-[#DDDDDD] bg-white p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-[#002126]">Execution result</h3>
-
           {!result ? (
             <p className="mt-4 text-sm leading-6 text-[#6D6E6F]">
               Run the workflow to see extracted candidate details, job match, interviewer assignment,
@@ -257,20 +162,17 @@ export default function WorkflowRunPage() {
                 <p><span className="font-semibold">Email:</span> {String(resultData?.candidate_email ?? '-')}</p>
                 <p><span className="font-semibold">Domain:</span> {String(resultData?.extracted_domain ?? '-')}</p>
               </div>
-
               <div className="rounded-xl bg-[#F8F8F8] p-4">
                 <p className="font-semibold text-[#002126]">Match</p>
                 <p className="mt-2">Found: {String(resultData?.match_found ?? false)}</p>
                 <p>Job: {String(matchedJd?.title ?? '-')}</p>
                 <p>Job ID: {String(matchedJd?.id ?? '-')}</p>
               </div>
-
               <div className="rounded-xl bg-[#F8F8F8] p-4">
                 <p className="font-semibold text-[#002126]">Interviewer</p>
                 <p className="mt-2">Name: {String(assignedInterviewer?.name ?? '-')}</p>
                 <p>Email: {String(assignedInterviewer?.email ?? '-')}</p>
               </div>
-
               <div className="rounded-xl bg-[#F8F8F8] p-4">
                 <p className="font-semibold text-[#002126]">Review and scheduling</p>
                 <p className="mt-2">Human approved: {String(resultData?.human_approved ?? 'pending')}</p>

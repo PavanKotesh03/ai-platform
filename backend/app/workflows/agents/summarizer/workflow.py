@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 class SummarizerWorkflow(BaseWorkflow):
     name = "summarizer"
-    description ="Summarizes the text"
+    description = "Summarizes the text"
 
     def __init__(self):
         self._graph = self._build_graph()
@@ -47,3 +47,43 @@ class SummarizerWorkflow(BaseWorkflow):
             "draft_summary": result["draft_summary"],
             "final_summary": result["final_summary"],
         }
+
+    async def stream(self, input_data: dict):
+        """Async generator — yields status + token chunks for SSE."""
+        from langchain_core.messages import SystemMessage, HumanMessage
+        from app.workflows.agents.summarizer.prompts import (
+            DRAFT_SYSTEM_PROMPT, DRAFT_USER_PROMPT,
+            REFINE_SYSTEM_PROMPT, REFINE_USER_PROMPT,
+        )
+        from app.workflows.agents.shared.llm import groq_llm, gemini_llm
+
+        input_text = input_data.get("input_text", "")
+
+        # Step 1 — Groq draft (no streaming, fast enough)
+        yield {"status": "Drafting initial summary..."}
+        draft_messages = [
+            SystemMessage(content=DRAFT_SYSTEM_PROMPT),
+            HumanMessage(content=DRAFT_USER_PROMPT.format(input_text=input_text)),
+        ]
+        draft_response = await groq_llm.ainvoke(draft_messages)
+        draft_summary = draft_response.content
+
+        # Step 2 — Gemini refine with token streaming
+        yield {"status": "Refining response..."}
+        refine_messages = [
+            SystemMessage(content=REFINE_SYSTEM_PROMPT),
+            HumanMessage(content=REFINE_USER_PROMPT.format(
+                input_text=input_text,
+                draft_summary=draft_summary,
+            )),
+        ]
+
+        final_summary = ""
+        async for chunk in gemini_llm.astream(refine_messages):
+            token = chunk.content
+            if token:
+                final_summary += token
+                yield {"token": token}
+
+        # Done — send full data for storage/reference
+        yield {"done": True, "draft_summary": draft_summary, "final_summary": final_summary}

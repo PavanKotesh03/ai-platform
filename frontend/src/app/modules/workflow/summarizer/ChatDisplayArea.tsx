@@ -1,5 +1,3 @@
-// src/app/modules/summarizer/ChatDisplayArea.tsx
-
 import { useState, RefObject } from 'react'
 import type { Message } from './types'
 
@@ -25,20 +23,17 @@ export default function ChatDisplayArea({ messages, isSubmitting, bottomRef }: P
   }
 
   if (messages.length === 0 && !isSubmitting) {
-  return (
-    <div className="flex flex-1 items-center justify-center text-center px-4">
-      <div className="flex flex-col items-center gap-4">
-        {/* Agent icon */}
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#761819]">
-          <span className="text-xl font-bold text-white">A</span>
-        </div>
-        <div>
+    return (
+      <div className="flex flex-1 items-center justify-center text-center px-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#761819]">
+            <span className="text-xl font-bold text-white">A</span>
+          </div>
           <p className="text-base font-medium text-[#002126]">Summarizer</p>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
@@ -60,13 +55,39 @@ export default function ChatDisplayArea({ messages, isSubmitting, bottomRef }: P
               {msg.role === 'assistant' && (
                 <>
                   <div className="rounded-2xl rounded-tl-sm border border-[#DDDDDD] bg-white px-4 py-3">
-                    <p className="text-xs font-medium text-[#761819] mb-2">Final Summary</p>
-                    <p className="text-sm leading-6 text-[#1E1F21] whitespace-pre-wrap">{msg.content}</p>
-                    {msg.draftSummary && (
+
+                    {/* Status line — shown while streaming, before tokens arrive */}
+                    {msg.streaming && msg.status && !msg.content && (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex gap-1">
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#761819] [animation-delay:0ms]" />
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#761819] [animation-delay:150ms]" />
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#761819] [animation-delay:300ms]" />
+                        </span>
+                        <p className="text-xs text-[#6D6E6F]">{msg.status}</p>
+                      </div>
+                    )}
+
+                    {/* Tokens streaming in */}
+                    {msg.content && (
+                      <>
+                        <p className="text-xs font-medium text-[#761819] mb-2">Final Summary</p>
+                        <p className="text-sm leading-6 text-[#1E1F21] whitespace-pre-wrap">
+                          {msg.content}
+                          {/* Blinking cursor while still streaming */}
+                          {msg.streaming && (
+                            <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#761819] align-middle" />
+                          )}
+                        </p>
+                      </>
+                    )}
+
+                    {/* Draft toggle — only shown after streaming is done */}
+                    {!msg.streaming && msg.draftSummary && (
                       <div className="mt-3 border-t border-[#DDDDDD] pt-3">
                         <button
                           onClick={() => toggleDraft(msg.id)}
-                          className="text-xs text-[#6D6E6F] hover:text-[#761819]"
+                          className="text-xs text-[#6D6E6F] hover:text-[#761819] transition"
                         >
                           {openDrafts.has(msg.id) ? 'Hide draft' : 'Show draft (Groq)'}
                         </button>
@@ -90,14 +111,6 @@ export default function ChatDisplayArea({ messages, isSubmitting, bottomRef }: P
             </div>
           </div>
         ))}
-
-        {isSubmitting && (
-          <div className="flex justify-start">
-            <div className="rounded-2xl rounded-tl-sm border border-[#DDDDDD] bg-white px-4 py-3 text-sm text-[#6D6E6F]">
-              Summarizing...
-            </div>
-          </div>
-        )}
 
         <div ref={bottomRef} />
       </div>

@@ -2,8 +2,8 @@ import json
 import os
 import tempfile
 from pathlib import Path
-
 from fastapi import APIRouter, HTTPException, Depends, status, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.workflow import workflow_service
 from app.schemas.workflow import WorkflowListResponse, WorkflowResponse, ExecutionRequest, ExecutionResponse
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 @router.get("", response_model=WorkflowListResponse)
-async def list_workflows(current_user: User = Depends(get_current_user)):  # ← User not tuple
+async def list_workflows(current_user: User = Depends(get_current_user)):
     workflows = workflow_service.list_workflows()
     return WorkflowListResponse(
         workflows=[WorkflowResponse(id=w.id, name=w.name, description=w.description) for w in workflows]
@@ -33,6 +33,7 @@ async def execute_workflow(
 ):
     temp_file_path: str | None = None
     content_type = request.headers.get("content-type", "")
+    wants_stream = request.headers.get("accept") == "text/event-stream"
 
     try:
         if "multipart/form-data" in content_type:
@@ -51,7 +52,18 @@ async def execute_workflow(
             parsed = ExecutionRequest.model_validate(body)
             input_payload = parsed.input
 
+        if wants_stream:
+            return StreamingResponse(
+                workflow_service.stream_workflow(workflow_id, input_payload, current_user.user_id, db),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                },
+            )
+
         return await workflow_service.execute_workflow(workflow_id, input_payload, current_user.user_id, db)
+
     except AppException:
         raise
     except RuntimeError:

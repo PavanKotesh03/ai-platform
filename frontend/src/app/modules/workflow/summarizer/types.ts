@@ -4,6 +4,8 @@ export interface Message {
   id: string
   role: MessageRole
   content: string
+  status?: string
+  streaming?: boolean
   draftSummary?: string
   timestamp: Date
 }

@@ -6,7 +6,10 @@ import { useAuth } from '@/app/store/AuthContext'
 import Button from '@/app/common/Button'
 import type { Workflow } from '@/app/store/types'
 
-const SUPPORTED_WORKFLOWS = new Set(['smart_resume_flow', 'summarizer'])
+const WORKFLOW_ROUTES: Record<string, string> = {
+  summarizer: '/summarizer',
+  smart_resume_flow: '/smart-resume',
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -16,12 +19,8 @@ export default function DashboardPage() {
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const openWorkflow = (workflow: Workflow) => {
-    navigate(`/workflows/${encodeURIComponent(workflow.name)}`, { state: { workflow } })
-  }
-
   useEffect(() => {
-    let cancelled = false 
+    let cancelled = false
 
     workflowService.list()
       .then((res) => { if (!cancelled) setWorkflows(res.data.workflows) })
@@ -44,6 +43,13 @@ export default function DashboardPage() {
       setUser(null)
       navigate('/login', { replace: true })
       setLogoutLoading(false)
+    }
+  }
+
+  const handleWorkflowClick = (workflow: Workflow) => {
+    const route = WORKFLOW_ROUTES[workflow.name.toLowerCase()]
+    if (route) {
+      navigate(route, { state: { workflow } })
     }
   }
 
@@ -88,13 +94,11 @@ export default function DashboardPage() {
         ) : (
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {workflows.map((workflow) => {
-              const isNavigable = SUPPORTED_WORKFLOWS.has(workflow.name.toLowerCase())
-              const handleClick = isNavigable ? () => openWorkflow(workflow) : undefined
-
+              const isNavigable = !!WORKFLOW_ROUTES[workflow.name.toLowerCase()]
               return (
                 <article
                   key={workflow.id}
-                  onClick={handleClick}
+                  onClick={() => handleWorkflowClick(workflow)}
                   className={`rounded-2xl border border-[#DDDDDD] bg-white p-6 shadow-sm transition
                     ${isNavigable
                       ? 'cursor-pointer hover:border-[#761819] hover:shadow-md'
@@ -115,6 +119,11 @@ export default function DashboardPage() {
                   <p className="mt-3 min-h-12 text-sm leading-6 text-[#6D6E6F]">
                     {workflow.description || 'No description provided yet.'}
                   </p>
+                  {!isNavigable && (
+                    <span className="mt-3 inline-block rounded-full bg-[#F8F8F8] px-2.5 py-1 text-xs text-[#6D6E6F]">
+                      Coming soon
+                    </span>
+                  )}
                 </article>
               )
             })}

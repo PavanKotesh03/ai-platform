@@ -1,24 +1,16 @@
 import { useState, useEffect, useRef, RefObject } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
-import { workflowService } from '@/app/services/workflow'
-import type { Message, SummarizerResult } from './types'
+import { useLocation } from 'react-router-dom'
+import type { Message } from './types'
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function isSummarizerResult(data: unknown): data is SummarizerResult {
-  if (typeof data !== 'object' || data === null) return false
-  const o = data as Record<string, unknown>
-  return typeof o.final_summary === 'string'
-}
-
-export function useSummarizer(explicitWorkflowId?: string) {
+export function useSummarizer() {
   const location = useLocation()
-  const { workflowId: routeWorkflowId } = useParams()
 
-  const stateWorkflowId = (location.state as { workflowId?: string } | null)?.workflowId
-  const workflowId: string | null = explicitWorkflowId ?? routeWorkflowId ?? stateWorkflowId ?? null
+  const workflowId: string | null =
+    (location.state as { workflow?: { id: string } } | null)?.workflow?.id ?? null
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -47,28 +39,87 @@ export function useSummarizer(explicitWorkflowId?: string) {
     setInput('')
     setIsSubmitting(true)
 
-    try {
-      const res = await workflowService.execute(workflowId, {
-        input: { input_text: trimmed },
-      })
-      const raw = res.data.data
-      if (!isSummarizerResult(raw)) throw new Error('Unexpected response from summarizer')
+    const assistantId = generateId()
+    setMessages((prev) => [...prev, {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      status: '',
+      streaming: true,
+      timestamp: new Date(),
+    }])
 
-      setMessages((prev) => [...prev, {
-        id: generateId(),
-        role: 'assistant',
-        content: raw.final_summary,
-        draftSummary: raw.draft_summary,
-        timestamp: new Date(),
-      }])
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } } }
-      setMessages((prev) => [...prev, {
-        id: generateId(),
-        role: 'error',
-        content: e.response?.data?.detail || 'Something went wrong. Please try again.',
-        timestamp: new Date(),
-      }])
+    try {
+      const response = await fetch(
+        `/api/v1/workflows/${workflowId}/execute`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ input: { input_text: trimmed } }),
+        }
+      )
+
+      if (!response.ok || !response.body) throw new Error('Stream failed')
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value, { stream: true })
+
+        for (const line of text.split('\n')) {
+          if (!line.startsWith('data: ')) continue
+          const raw = line.slice(6).trim()
+          if (!raw) continue
+
+          let chunk: Record<string, unknown>
+          try { chunk = JSON.parse(raw) } catch { continue }
+
+          if (chunk.error) {
+            setMessages((prev) => prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, role: 'error' as const, content: String(chunk.error), streaming: false, status: '' }
+                : m
+            ))
+            break
+          }
+
+          if (chunk.status) {
+            setMessages((prev) => prev.map((m) =>
+              m.id === assistantId ? { ...m, status: String(chunk.status) } : m
+            ))
+          }
+
+          if (chunk.token) {
+            setMessages((prev) => prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: m.content + String(chunk.token), status: '' }
+                : m
+            ))
+          }
+
+          if (chunk.done) {
+            setMessages((prev) => prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, streaming: false, status: '', draftSummary: String(chunk.draft_summary ?? '') }
+                : m
+            ))
+          }
+        }
+      }
+    } catch {
+      setMessages((prev) => prev.map((m) =>
+        m.id === assistantId
+          ? { ...m, role: 'error' as const, content: 'Something went wrong. Please try again.', streaming: false, status: '' }
+          : m
+      ))
     } finally {
       setIsSubmitting(false)
     }
