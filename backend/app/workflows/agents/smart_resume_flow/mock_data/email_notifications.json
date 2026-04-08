@@ -142,5 +142,37 @@
         "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
         "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
         "status": "SENT"
+    },
+    {
+        "sent_at": "2026-04-05 21:17:27",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-04-05 21:45:58",
+        "to_candidate": "monishaj.65@gmail.com",
+        "to_interviewer": "megha.chatterjee@ai.meta.com",
+        "subject": "Interview Scheduled - Machine Learning Engineer - NLP (Transformers & Model Deployment)",
+        "body": "Dear Monisha Jegadeesan,\nYour interview for 'Machine Learning Engineer - NLP (Transformers & Model Deployment)' has been scheduled on 2025-06-12 at 12:00 PM with Megha Chatterjee.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-04-06 12:18:41",
+        "to_candidate": "gayathrikomma309@gmail.com",
+        "to_interviewer": "aditya.sharma@search.microsoft.com",
+        "subject": "Interview Scheduled - Backend Engineer - Search Infrastructure (Elasticsearch)",
+        "body": "Dear Komma Gayathri,\nYour interview for 'Backend Engineer - Search Infrastructure (Elasticsearch)' has been scheduled on 2025-06-13 at 09:00 AM with Aditya Sharma.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
+    },
+    {
+        "sent_at": "2026-04-06 14:51:41",
+        "to_candidate": "gayathrikomma309@gmail.com",
+        "to_interviewer": "aditya.sharma@search.microsoft.com",
+        "subject": "Interview Scheduled - Backend Engineer - Search Infrastructure (Elasticsearch)",
+        "body": "Dear Komma Gayathri,\nYour interview for 'Backend Engineer - Search Infrastructure (Elasticsearch)' has been scheduled on 2025-06-13 at 09:00 AM with Aditya Sharma.\n\nBest Regards,\nSmartResumeFlow Team",
+        "status": "SENT"
     }
 ]

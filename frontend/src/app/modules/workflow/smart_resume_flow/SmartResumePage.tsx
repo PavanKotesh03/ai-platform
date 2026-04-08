@@ -1,26 +1,50 @@
-import { useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Button from '@/app/common/Button'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { authService } from '@/app/services/auth'
 import { workflowService } from '@/app/services/workflow'
 import { useAuth } from '@/app/store/AuthContext'
 import type { ExecutionResponse, Workflow } from '@/app/store/types'
+import SmartResumeHeader from './components/SmartResumeHeader'
+import WorkflowSection from './components/WorkflowSection'
+import { useDecisionHandler } from './hooks/useDecisionHandler'
+import { useFileHandler } from './hooks/useFileHandler'
+import { useWorkflowFetch } from './hooks/useWorkflowFetch'
+import ResultsPanel from './ResultsPanel'
 
-type ReviewDecision = 'pending' | 'approve' | 'reject'
+type ExecutionStep = 'upload' | 'results' | 'decision_saved'
 
 export default function SmartResumePage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, setUser } = useAuth()
 
-  const workflow = (location.state as { workflow?: Workflow } | null)?.workflow
+  const workflowFromLocation = (location.state as { workflow?: Workflow } | null)?.workflow
+  const { workflow, workflowLoading, workflowError } = useWorkflowFetch(workflowFromLocation)
+  const {
+    resumeFile,
+    fileInputRef,
+    fileInputKey,
+    setResumeFile,
+    setFileInputKey,
+    handleFileAction,
+  } = useFileHandler()
 
   const [logoutLoading, setLogoutLoading] = useState(false)
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
-  const [reviewDecision, setReviewDecision] = useState<ReviewDecision>('pending')
+  const [executionStep, setExecutionStep] = useState<ExecutionStep>('upload')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<ExecutionResponse | null>(null)
+  const {
+    approvalDecision,
+    savingDecision,
+    decisionMessage,
+    error: decisionError,
+    handleApprovalDecision,
+    clearError: clearDecisionError,
+  } = useDecisionHandler(workflow, resumeFile, result, (_decision, updatedResult) => {
+    if (updatedResult) setResult(updatedResult)
+    setExecutionStep('decision_saved')
+  })
 
   const handleLogout = async () => {
     setLogoutLoading(true)
@@ -33,12 +57,6 @@ export default function SmartResumePage() {
     }
   }
 
-  const humanApproved = useMemo(() => {
-    if (reviewDecision === 'approve') return true
-    if (reviewDecision === 'reject') return false
-    return undefined
-  }, [reviewDecision])
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!workflow) return
@@ -49,143 +67,82 @@ export default function SmartResumePage() {
 
     setSubmitting(true)
     setError('')
+    clearDecisionError()
 
     try {
       const response = await workflowService.executeWithPdf(
         workflow.id,
-        { human_approved: humanApproved },
+        {},
         resumeFile,
       )
       setResult(response.data)
+      setExecutionStep('results')
     } catch (err: unknown) {
       const apiError = err as { response?: { data?: { detail?: string } } }
       setError(apiError.response?.data?.detail || 'Workflow execution failed. Please try again.')
       setResult(null)
+      setExecutionStep('upload')
     } finally {
       setSubmitting(false)
     }
   }
 
+  const handleReset = () => {
+    setExecutionStep('upload')
+    setResult(null)
+    setResumeFile(null)
+    setError('')
+    clearDecisionError()
+    setSubmitting(false)
+    setFileInputKey((prev) => prev + 1)
+  }
+
   const resultData = result?.data
-  const matchedJd = resultData?.matched_jd as Record<string, unknown> | undefined
-  const assignedInterviewer = resultData?.assigned_interviewer as Record<string, unknown> | undefined
-  const scheduleDetails = resultData?.schedule_details as Record<string, unknown> | undefined
+  const showResultsPanel = executionStep !== 'upload' && !!result
+  const uploadError = error || decisionError
+  const resultsError = decisionError || error
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
-      <header className="border-b border-[#DDDDDD] bg-white">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <p className="text-sm font-medium text-[#761819]">Agentic AI Platform</p>
-            <h1 className="text-2xl font-bold text-[#002126]">Smart Resume Flow</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-semibold text-[#1E1F21]">{user?.username}</p>
-              <p className="text-xs text-[#6D6E6F]">{user?.email}</p>
-            </div>
-            <div className="w-28">
-              <Button type="button" variant="ghost" loading={logoutLoading} onClick={handleLogout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <SmartResumeHeader user={user} logoutLoading={logoutLoading} onLogout={handleLogout} />
 
-      <main className="mx-auto grid items-start w-full max-w-5xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-        <section className="rounded-2xl border border-[#DDDDDD] bg-white p-5 shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-[#761819]">
-              <Link to="/" className="hover:underline">Back to dashboard</Link>
-            </p>
-            <h2 className="mt-2 text-2xl font-bold text-[#002126]">Run Smart Resume Flow</h2>
-          </div>
+      <main
+        className={`mx-auto grid w-full max-w-5xl items-start gap-5 px-4 py-6 sm:px-6 lg:px-8 ${
+          showResultsPanel ? 'grid-cols-1 lg:grid-cols-[0.95fr_1.05fr]' : 'grid-cols-1'
+        }`}
+      >
+        <WorkflowSection
+          workflowLoading={workflowLoading}
+          workflow={workflow}
+          workflowError={workflowError}
+          executionStep={executionStep}
+          resumeFile={resumeFile}
+          submitting={submitting}
+          uploadError={uploadError}
+          resultsError={resultsError}
+          fileInputRef={fileInputRef}
+          fileInputKey={fileInputKey}
+          onFileChange={setResumeFile}
+          onFileAction={handleFileAction}
+          onSubmit={handleSubmit}
+          onClearUploadError={() => {
+            setError('')
+            clearDecisionError()
+          }}
+          onReset={handleReset}
+        />
 
-          {!workflow ? (
-            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Workflow not found. Please go back to the dashboard and try again.
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-[#1E1F21]">Resume PDF</label>
-                <input
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)}
-                  className="rounded-xl border border-[#DDDDDD] bg-white px-4 py-3 text-sm text-[#1E1F21] file:mr-4 file:rounded-lg file:border-0 file:bg-[#761819] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-[#1E1F21]">Human review decision</label>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {(['pending', 'approve', 'reject'] as ReviewDecision[]).map((option) => (
-                    <label key={option} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DDDDDD] px-4 py-3 text-sm text-[#1E1F21]">
-                      <input
-                        type="radio"
-                        name="reviewDecision"
-                        checked={reviewDecision === option}
-                        onChange={() => setReviewDecision(option)}
-                      />
-                      {option === 'pending' ? 'Pending review' : option.charAt(0).toUpperCase() + option.slice(1)}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <div className="w-full sm:w-40">
-                <Button type="submit" loading={submitting}>Run workflow</Button>
-              </div>
-            </form>
-          )}
-        </section>
-
-        <aside className="rounded-2xl border border-[#DDDDDD] bg-white p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-[#002126]">Execution result</h3>
-          {!result ? (
-            <p className="mt-4 text-sm leading-6 text-[#6D6E6F]">
-              Run the workflow to see extracted candidate details, job match, interviewer assignment,
-              scheduling output, and review status.
-            </p>
-          ) : (
-            <div className="mt-4 flex flex-col gap-4 text-sm text-[#1E1F21]">
-              <div className="rounded-xl bg-[#F8F8F8] p-4">
-                <p><span className="font-semibold">Candidate:</span> {String(resultData?.candidate_name ?? '-')}</p>
-                <p><span className="font-semibold">Email:</span> {String(resultData?.candidate_email ?? '-')}</p>
-                <p><span className="font-semibold">Domain:</span> {String(resultData?.extracted_domain ?? '-')}</p>
-              </div>
-              <div className="rounded-xl bg-[#F8F8F8] p-4">
-                <p className="font-semibold text-[#002126]">Match</p>
-                <p className="mt-2">Found: {String(resultData?.match_found ?? false)}</p>
-                <p>Job: {String(matchedJd?.title ?? '-')}</p>
-                <p>Job ID: {String(matchedJd?.id ?? '-')}</p>
-              </div>
-              <div className="rounded-xl bg-[#F8F8F8] p-4">
-                <p className="font-semibold text-[#002126]">Interviewer</p>
-                <p className="mt-2">Name: {String(assignedInterviewer?.name ?? '-')}</p>
-                <p>Email: {String(assignedInterviewer?.email ?? '-')}</p>
-              </div>
-              <div className="rounded-xl bg-[#F8F8F8] p-4">
-                <p className="font-semibold text-[#002126]">Review and scheduling</p>
-                <p className="mt-2">Human approved: {String(resultData?.human_approved ?? 'pending')}</p>
-                <p>Scheduled: {String(resultData?.scheduled ?? false)}</p>
-                {(resultData?.review_reason ?? '') ? (
-                  <p>Review reason: {String(resultData?.review_reason)}</p>
-                ) : null}
-                <p>Date: {String(scheduleDetails?.date ?? '-')}</p>
-                <p>Time: {String(scheduleDetails?.time ?? '-')}</p>
-              </div>
-            </div>
-          )}
-        </aside>
+        {showResultsPanel ? (
+          <ResultsPanel
+            resultData={resultData}
+            executionStep={executionStep}
+            approvalDecision={approvalDecision}
+            savingDecision={savingDecision}
+            decisionMessage={decisionMessage}
+            onApprovalDecision={handleApprovalDecision}
+            onReset={handleReset}
+          />
+        ) : null}
       </main>
     </div>
   )
